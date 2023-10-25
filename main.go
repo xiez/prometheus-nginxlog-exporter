@@ -22,6 +22,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -77,6 +78,7 @@ func main() {
 
 	if opts.Version {
 		fmt.Println(version.Print("prometheus-nginxlog-exporter"))
+		fmt.Println("modified revision: v0.1")
 		os.Exit(0)
 	}
 
@@ -292,9 +294,33 @@ func processSource(logger *log.Logger, nsCfg *config.NamespaceConfig, t tail.Fol
 
 	copy(labelValues, staticLabelValues)
 
+	// Compile the regular expression pattern for exclusion
+	compiledPatterns := make([]*regexp.Regexp, len(nsCfg.SourceData.ExcludePatterns))
+	for i, pattern := range nsCfg.SourceData.ExcludePatterns {
+		regex, err := regexp.Compile(pattern)
+		if err != nil {
+			logger.Fatalf("Error compiling regex pattern: %s", err)
+		}
+		fmt.Println("compiled pattern:", pattern)
+		compiledPatterns[i] = regex
+	}
+
 	for line := range t.Lines() {
 		if nsCfg.PrintLog {
 			fmt.Println(line)
+		}
+
+		ignoreLine := false
+		for _, comPat := range compiledPatterns {
+			if comPat.MatchString(line) {
+				ignoreLine = true
+				break
+			}
+		}
+
+		if ignoreLine {
+			logger.Debugf("ignore line --> %s", line)
+			continue
 		}
 
 		fields, err := parser.ParseString(line)

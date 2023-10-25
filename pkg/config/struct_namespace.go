@@ -36,8 +36,9 @@ type NamespaceConfig struct {
 }
 
 type SourceData struct {
-	Files  FileSource    `hcl:"files" yaml:"files"`
-	Syslog *SyslogSource `hcl:"syslog" yaml:"syslog"`
+	Files           FileSource     `hcl:"files" yaml:"files"`
+	Syslog          *SyslogSource  `hcl:"syslog" yaml:"syslog"`
+	ExcludePatterns ExcludePattern `hcl:"exclude_patterns" yaml:"exclude_patterns"`
 }
 
 type FileSource []string
@@ -47,6 +48,8 @@ type SyslogSource struct {
 	Format        string   `hcl:"format" yaml:"format"`
 	Tags          []string `hcl:"tags" yaml:"tags"`
 }
+
+type ExcludePattern []string
 
 // StabilityWarnings tests if the NamespaceConfig uses any configuration settings
 // that are not yet declared "stable"

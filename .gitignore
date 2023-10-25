@@ -2,3 +2,5 @@
 /prometheus-nginxlog-exporter
 /dist
 .history
+*~
+*.log
